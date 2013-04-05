@@ -380,7 +380,7 @@ CPLErr GDALWMSRasterBand::ReadBlockFromFile(int x, int y, const char *file_name,
         int sx = ds->GetRasterXSize();
         int sy = ds->GetRasterYSize();
         bool accepted_as_no_alpha = false;  // if the request is for 4 bands but the wms returns 3  
-        bool accepted_as_one_band = false;  // if the request is for 4 bands but the wms returns 3  
+        bool accepted_as_one_band = false;  // if the request is for 4 bands but the wms returns less than 3
         /* Allow bigger than expected so pre-tiled constant size images work on corners */
         if ((sx > nBlockXSize) || (sy > nBlockYSize) || (sx < esx) || (sy < esy)) {
             CPLError(CE_Failure, CPLE_AppDefined, "GDALWMS: Incorrect size %d x %d of downloaded block, expected %d x %d, max %d x %d.",
@@ -431,7 +431,7 @@ CPLErr GDALWMSRasterBand::ReadBlockFromFile(int x, int y, const char *file_name,
                    }
                    else
                    if (ds->GetRasterCount() < m_parent_dataset->nBands && m_parent_dataset->nBands == 4 && (eDataType == GDT_Byte))
-                   { // WMS returned a file with no alpha so we will fill the alpha band with "opaque" 
+                   { // WMS returned a file with less than the expected number of bands, fill the missing bands with "opaque" 
                       accepted_as_one_band = true;
                    }
                    else
@@ -499,7 +499,7 @@ CPLErr GDALWMSRasterBand::ReadBlockFromFile(int x, int y, const char *file_name,
                                else
                                if (accepted_as_one_band)
                                {
-                                  // the file had 1 band and we are reading band 2-4 (Alpha) so fill with 255 (no alpha)
+                                  // the file had less than the expected number of bands so fill with 255
                                   GByte *byte_buffer = reinterpret_cast<GByte *>(p);
                                   for (int y = 0; y < sy; ++y) {
                                      for (int x = 0; x < sx; ++x) {
